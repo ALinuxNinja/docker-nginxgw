@@ -99,7 +99,7 @@ RUN ./configure $NGINX_CONFIG \
 
 ## NGINX: Build & Install
 RUN make -j$(nproc) \
-&& make install \
+&& make install
 
 ## NGINX: Create missing dirs and cleanup
 RUN mkdir -p /var/lib/nginx/body && chown -R www-data:www-data /var/lib/nginx \
