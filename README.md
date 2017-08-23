@@ -1,4 +1,4 @@
-[![Build Status](https://semaphoreci.com/api/v1/alinuxninja/docker-nginxgw/branches/master/badge.svg)](https://semaphoreci.com/alinuxninja/docker-nginxgw) [![](https://images.microbadger.com/badges/image/alinuxninja/nginxgw.svg)](https://microbadger.com/images/alinuxninja/nginxgw) [![](https://images.microbadger.com/badges/version/alinuxninja/nginxgw.svg)](https://hub.docker.com/r/alinuxninja/nginxgw/ )
+[![Build Status](https://semaphoreci.com/api/v1/alinuxninja/docker-nginxgw/branches/stable/badge.svg)](https://semaphoreci.com/alinuxninja/docker-nginxgw) [![](https://images.microbadger.com/badges/image/alinuxninja/nginxgw.svg)](https://microbadger.com/images/alinuxninja/nginxgw) [![](https://images.microbadger.com/badges/version/alinuxninja/nginxgw.svg)](https://hub.docker.com/r/alinuxninja/nginxgw/ )
 
 ## About
 This container is a stripped down version of NGINX optimized for usage as a frontend proxy.
