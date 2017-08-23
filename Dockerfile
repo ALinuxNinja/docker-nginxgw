@@ -3,7 +3,7 @@ SHELL ["/bin/bash", "-c"]
 
 ARG NGINX_VER
 
-## Set Versions
+## Set Packages to add
 ENV PACKAGES_BUILD="\
 	git-core \
 	build-essential \
@@ -21,14 +21,7 @@ ENV PACKAGES_BUILD="\
 	libyajl-dev \
 	liblmdb0 \
 	liblmdb-dev"
-ENV PACKAGES_REQUIRED="\
-        libssl1.0.0 \
-        libcurl3 \
-        libgeoip1 \
-        libyajl2 \
-	pkg-config \
-        ca-certificates \
-        libxml2"
+
 ENV NGINX_CONFIG="\
 	--prefix=/usr \
 	--conf-path=/etc/nginx/nginx.conf \
@@ -61,26 +54,30 @@ ENV NGINX_CONFIG="\
 
 ## Create Folders
 RUN mkdir -p /docker/build
-WORKDIR /docker/build
 
 ## Install Packages
-RUN apt-get update && apt-get -y install --no-install-recommends \
-        $PACKAGES_BUILD \
-	$PACKAGES_REQUIRED \
+RUN apt-get update && apt-get -y install --no-install-recommends $PACKAGES_BUILD \
 && rm -rf /var/lib/apt/lists/*
 
-## Install ModSecurity
+## ModSecurity: Setup
+WORKDIR /docker/build
 RUN git clone https://github.com/SpiderLabs/ModSecurity \
 && cd ModSecurity \
 && git checkout v3/master \
 && git submodule init \
 && git submodule update \
-&& ./build.sh \
-&& ./configure --prefix=/usr \
-&& make -j$(nproc) \
+&& ./build.sh
+WORKDIR /docker/build/ModSecurity
+
+## ModSecurity: Configure Build
+RUN ./configure --prefix=/usr
+
+## ModSecurity: Build & Install
+RUN make -j$(nproc) \
 && make install
 
-## Install NGINX
+## NGINX: Setup
+WORKDIR /docker/build
 RUN wget http://nginx.org/download/nginx-$(wget -q -O -  http://nginx.org/download/ | sed -n 's/.*href="nginx-\([^"]*\)\.tar\.gz.*/\1/p' | sort -V | grep -i ${NGINX_VER} | tail -n1).tar.gz \
 && tar xf nginx-*.tar.gz && rm nginx-*.tar.gz && mv nginx-* nginx \
 && mkdir -p /docker/build/nginx/modules \
@@ -93,12 +90,18 @@ RUN wget http://nginx.org/download/nginx-$(wget -q -O -  http://nginx.org/downlo
 && source /docker/env && wget $(scripts/format_binary_url.sh PSOL_BINARY_URL) \
 && source /docker/env && tar -zxvf $(echo ${PAGESPEED_VER} | awk -f '-' '{print $1}')*.tar.gz \
 && cd /docker/build/nginx/modules \
-&& git clone https://github.com/SpiderLabs/ModSecurity-nginx.git ngx_modsecurity \
-&& cd /docker/build/nginx \
-&& ./configure $NGINX_CONFIG \
-&& make -j$(nproc) \
+&& git clone https://github.com/SpiderLabs/ModSecurity-nginx.git ngx_modsecurity
+WORKDIR /docker/build/nginx
+
+## NGINX: Configure Build
+RUN ./configure $NGINX_CONFIG \
+
+## NGINX: Build & Install
+RUN make -j$(nproc) \
 && make install \
-&& mkdir -p /var/lib/nginx/body && chown -R www-data:www-data /var/lib/nginx \
+
+## NGINX: Create missing dirs and cleanup
+RUN mkdir -p /var/lib/nginx/body && chown -R www-data:www-data /var/lib/nginx \
 && strip /usr/sbin/nginx \
 && strip /usr/lib/libmodsecurity.so.3.0.0
 
