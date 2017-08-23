@@ -95,7 +95,7 @@ RUN wget http://nginx.org/download/nginx-$(wget -q -O -  http://nginx.org/downlo
 WORKDIR /docker/build/nginx
 
 ## NGINX: Configure Build
-RUN ./configure $NGINX_CONFIG \
+RUN ./configure $NGINX_CONFIG
 
 ## NGINX: Build & Install
 RUN make -j$(nproc) \
