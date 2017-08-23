@@ -1,0 +1,7 @@
+#!/bin/bash
+
+docker run -d --name nginx-stable -p 8082:80 alinuxninja/nginxgw:stable
+sleep 10
+docker logs nginx-stable
+curl -L -I --fail http://localhost:8082
+docker rm -f nginx-stable
