@@ -1,7 +1,7 @@
 FROM ubuntu:xenial
 SHELL ["/bin/bash", "-c"]
 
-ARG NGINX_VER
+ARG NGINX_BUILD_VER
 
 ## Set Packages to add
 ENV PACKAGES_BUILD="\
@@ -95,7 +95,7 @@ RUN git clone https://github.com/SpiderLabs/ModSecurity \
 && make install
 
 ## Build NGINX
-RUN export NGINX_VER=${NGINX_MAINLINE_VER}$(lynx -dump -hiddenlinks=listonly http://nginx.org/download/ | awk '/http/{print $2}' | sed -n "s/^.*nginx-${NGINX_MAINLINE_VER}\.\(.*\)\.tar\.gz$/\1/p" | sort -V | tail -n1) \
+RUN export NGINX_VER="${NGINX_BUILD_VER}$(lynx -dump -hiddenlinks=listonly http://nginx.org/download/ | awk '/http/{print $2}' | sed -n "s/^.*nginx-${NGINX_BUILD_VER}\.\(.*\)\.tar\.gz$/\1/p" | sort -V | tail -n1)" \
 && wget http://nginx.org/download/nginx-${NGINX_VER}.tar.gz \
 && tar xf nginx-*.tar.gz && rm nginx-*.tar.gz && mv nginx-* nginx \
 && mkdir -p /docker/build/nginx/modules \
