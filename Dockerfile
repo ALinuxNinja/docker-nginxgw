@@ -76,10 +76,8 @@ RUN apt-get update && apt-get -y install --no-install-recommends $PACKAGES_BUILD
 RUN git config --global http.postBuffer 1048576000
 
 ## Build PSOL
-RUN git clone -b latest-stable --recursive https://github.com/pagespeed/mod_pagespeed.git \
+RUN git clone -b master --recursive https://github.com/pagespeed/mod_pagespeed.git \
 && cd mod_pagespeed \
-&& patch -p1 /docker/src/PageSpeed/patch/mod_pagespeed-1453.diff \
-&& patch -p1 /docker/src/PageSpeed/patch/mod_pagespeed-1458.diff \
 && python build/gyp_chromium --depth=. \
 && make BUILDTYPE=Release mod_pagespeed_test pagespeed_automatic_test \
 && make AR.host=`pwd`/build/wrappers/ar.sh AR.target=`pwd`/build/wrappers/ar.sh BUILDTYPE=Release
