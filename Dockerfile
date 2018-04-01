@@ -76,12 +76,11 @@ RUN apt-get update && apt-get -y install --no-install-recommends $PACKAGES_BUILD
 ## Set Git config
 RUN git config --global http.postBuffer 1048576000
 
-## Build PSOL
-RUN git clone -b latest-stable --recursive https://github.com/apache/incubator-pagespeed-mod.git mod_pagespeed \
-&& cd mod_pagespeed \
-&& python build/gyp_chromium --depth=. \
-&& make BUILDTYPE=Release mod_pagespeed_test pagespeed_automatic_test \
-&& make BUILDTYPE=Release
+## Build Pagespeed
+RUN git clone -b latest-beta https://github.com/apache/incubator-pagespeed-ngx.git ngx_pagespeed \
+&& cd ngx_pagespeed \
+&& wget $(scripts/format_binary_url.sh PSOL_BINARY_URL) \
+&& tar -xzvf *.tar.gz
 
 ## Build ModSecurity
 RUN git clone https://github.com/SpiderLabs/ModSecurity \
@@ -98,15 +97,11 @@ RUN git clone https://github.com/SpiderLabs/ModSecurity \
 RUN export NGINX_VER="${NGINX_BUILD_VER}.$(lynx -dump -hiddenlinks=listonly http://nginx.org/download/ | awk '/http/{print $2}' | sed -n "s/^.*nginx-${NGINX_BUILD_VER}\.\(.*\)\.tar\.gz$/\1/p" | sort -V | tail -n1)" \
 && wget http://nginx.org/download/nginx-${NGINX_VER}.tar.gz \
 && tar xf nginx-*.tar.gz && rm nginx-*.tar.gz && mv nginx-* nginx \
-&& mkdir -p /docker/build/nginx/modules \
-&& cd /docker/build/nginx/modules \
-&& git clone https://github.com/kyprizel/testcookie-nginx-module.git ngx_testcookie \
-&& git clone https://github.com/pagespeed/ngx_pagespeed.git \
-&& cd /docker/build/nginx/modules/ngx_pagespeed \
-&& wget $(scripts/format_binary_url.sh PSOL_BINARY_URL) \
-&& tar -zxvf *.tar.gz \
-&& cd /docker/build/nginx/modules \
-&& git clone https://github.com/SpiderLabs/ModSecurity-nginx.git ngx_modsecurity \
+&& cd nginx
+&& mkdir modules \
+&& git clone https://github.com/kyprizel/testcookie-nginx-module.git modules/ngx_testcookie \
+&& git clone https://github.com/SpiderLabs/ModSecurity-nginx.git modules/ngx_modsecurity \
+&& mv /build/ngx_pagespeed/ modules/ngx_pagespeed/ \
 && ./configure $NGINX_CONFIG \
 && make -j$(nproc) \
 && make install \
