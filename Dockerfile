@@ -60,10 +60,13 @@ ENV NGINX_CONFIG="\
 	--group=www-data"
 
 ## Create Folders
-RUN mkdir -p /docker/build /docker/build/mod_pagespeed
+RUN mkdir -p /docker/build
 
-## Add patches
-ADD patch /patch
+## Add Additional Source Files
+ADD src /docker/src
+
+## Set Workdir
+WORKDIR /docker/build
 
 ## Install Packages
 RUN apt-get update && apt-get -y install --no-install-recommends $PACKAGES_BUILD \
@@ -73,37 +76,28 @@ RUN apt-get update && apt-get -y install --no-install-recommends $PACKAGES_BUILD
 RUN git config --global http.postBuffer 1048576000
 
 ## Build PSOL
-WORKDIR /docker/build
-RUN git clone -b latest-stable --recursive https://github.com/pagespeed/mod_pagespeed.git
-WORKDIR /docker/build/mod_pagespeed
-RUN patch -p1 /patch/mod_pagespeed-1453.diff
-RUN patch -p1 /patch/mod_pagespeed-1458.diff
-RUN python build/gyp_chromium --depth=.
-RUN make BUILDTYPE=Release mod_pagespeed_test pagespeed_automatic_test
-#RUN ./out/Release/mod_pagespeed_test
-#RUN ./out/Release/pagespeed_automatic_test
-RUN make AR.host=`pwd`/build/wrappers/ar.sh AR.target=`pwd`/build/wrappers/ar.sh BUILDTYPE=Release
+RUN git clone -b latest-stable --recursive https://github.com/pagespeed/mod_pagespeed.git \
+&& cd mod_pagespeed \
+&& patch -p1 /docker/src/PageSpeed/patch/mod_pagespeed-1453.diff \
+&& patch -p1 /docker/src/PageSpeed/patch/mod_pagespeed-1458.diff \
+&& python build/gyp_chromium --depth=. \
+&& make BUILDTYPE=Release mod_pagespeed_test pagespeed_automatic_test \
+&& make AR.host=`pwd`/build/wrappers/ar.sh AR.target=`pwd`/build/wrappers/ar.sh BUILDTYPE=Release
 
-## ModSecurity: Setup
-WORKDIR /docker/build
+## Build ModSecurity
 RUN git clone https://github.com/SpiderLabs/ModSecurity \
 && cd ModSecurity \
 && git checkout v3/master \
 && git submodule init \
 && git submodule update \
-&& ./build.sh
-WORKDIR /docker/build/ModSecurity
-
-## ModSecurity: Configure Build
-RUN ./configure --prefix=/usr
-
-## ModSecurity: Build & Install
-RUN make -j$(nproc) \
+&& ./build.sh \
+&& ./configure --prefix=/usr \
+&& make -j$(nproc) \
 && make install
 
-## NGINX: Setup
-WORKDIR /docker/build
-RUN wget http://nginx.org/download/nginx-$(wget -q -O -  http://nginx.org/download/ | sed -n 's/.*href="nginx-\([^"]*\)\.tar\.gz.*/\1/p' | sort -V | grep -i ${NGINX_VER} | tail -n1).tar.gz \
+## Build NGINX
+RUN export NGINX_VER=${NGINX_MAINLINE_VER}$(lynx -dump -hiddenlinks=listonly http://nginx.org/download/ | awk '/http/{print $2}' | sed -n "s/^.*nginx-${NGINX_MAINLINE_VER}\.\(.*\)\.tar\.gz$/\1/p" | sort -V | tail -n1) \
+&& wget http://nginx.org/download/nginx-${NGINX_VER}.tar.gz \
 && tar xf nginx-*.tar.gz && rm nginx-*.tar.gz && mv nginx-* nginx \
 && mkdir -p /docker/build/nginx/modules \
 && cd /docker/build/nginx/modules \
@@ -113,18 +107,11 @@ RUN wget http://nginx.org/download/nginx-$(wget -q -O -  http://nginx.org/downlo
 && wget $(scripts/format_binary_url.sh PSOL_BINARY_URL) \
 && tar -zxvf *.tar.gz \
 && cd /docker/build/nginx/modules \
-&& git clone https://github.com/SpiderLabs/ModSecurity-nginx.git ngx_modsecurity
-WORKDIR /docker/build/nginx
-
-## NGINX: Configure Build
-RUN ./configure $NGINX_CONFIG
-
-## NGINX: Build & Install
-RUN make -j$(nproc) \
-&& make install
-
-## NGINX: Create missing dirs and cleanup
-RUN mkdir -p /var/lib/nginx/body && chown -R www-data:www-data /var/lib/nginx \
+&& git clone https://github.com/SpiderLabs/ModSecurity-nginx.git ngx_modsecurity \
+&& ./configure $NGINX_CONFIG \
+&& make -j$(nproc) \
+&& make install \
+&& mkdir -p /var/lib/nginx/body && chown -R www-data:www-data /var/lib/nginx \
 && strip /usr/sbin/nginx \
 && strip /usr/lib/libmodsecurity.so.3.0.0
 
@@ -167,8 +154,8 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
 && rm -rf /var/lib/apt/lists/*
 
 ## Copy Config
-ADD conf/nginx.conf /etc/nginx/nginx.conf
-ADD conf/default.conf /etc/nginx/conf.d/default.conf
+RUN cp /docker/src/nginx/conf/nginx.conf /etc/nginx/nginx.conf \
+&& cp /docker/src/nginx/conf/default.conf /etc/nginx/conf.d/default.conf
 
 ## Expose
 EXPOSE 80
