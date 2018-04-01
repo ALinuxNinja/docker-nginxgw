@@ -116,17 +116,13 @@ RUN export NGINX_VER="${NGINX_BUILD_VER}$(lynx -dump -hiddenlinks=listonly http:
 
 FROM ubuntu:xenial
 
-ARG BUILD_DATE
-ARG VCS_REF
-ARG NGINX_VER
-LABEL org.label-schema.build-date=$BUILD_DATE \
-      org.label-schema.name="nginxgw" \
+ARG NGINX_BUILD_VER
+LABEL org.label-schema.name="nginxgw" \
       org.label-schema.description="A Custom NGINX build suitable for use as a front-end proxy" \
-      org.label-schema.url="https://hub.docker.com/r/alinuxninja/nginxgw/" \
-      org.label-schema.vcs-ref=$VCS_REF \
-      org.label-schema.vcs-url="https://github.com/ALinuxNinja/docker-nginxgw/" \
-      org.label-schema.vendor="ALinuxNinja" \
-      org.label-schema.version=$NGINX_VER \
+      org.label-schema.url="https://hub.docker.com/r/catdeployed/nginxgw/" \
+      org.label-schema.vcs-url="https://github.com/CatDeployed/docker-nginxgw/" \
+      org.label-schema.vendor="CatDeployed" \
+      org.label-schema.version=$NGINX_BUILD_VER \
       org.label-schema.schema-version="1.0"
 
 ENV PACKAGES_REQUIRED="\
