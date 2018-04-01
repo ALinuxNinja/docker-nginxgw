@@ -27,7 +27,8 @@ ENV PACKAGES_BUILD="\
 	uuid-dev \
 	libuuid1 \
 	lsb-release \
-	python"
+	python \
+	lynx"
 
 ENV NGINX_CONFIG="\
 	--prefix=/usr \
