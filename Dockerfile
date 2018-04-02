@@ -97,7 +97,7 @@ RUN git clone https://github.com/SpiderLabs/ModSecurity \
 RUN export NGINX_VER="${NGINX_BUILD_VER}.$(lynx -dump -hiddenlinks=listonly http://nginx.org/download/ | awk '/http/{print $2}' | sed -n "s/^.*nginx-${NGINX_BUILD_VER}\.\(.*\)\.tar\.gz$/\1/p" | sort -V | tail -n1)" \
 && wget http://nginx.org/download/nginx-${NGINX_VER}.tar.gz \
 && tar xf nginx-*.tar.gz && rm nginx-*.tar.gz && mv nginx-* nginx \
-&& cd nginx
+&& cd nginx \
 && mkdir modules \
 && git clone https://github.com/kyprizel/testcookie-nginx-module.git modules/ngx_testcookie \
 && git clone https://github.com/SpiderLabs/ModSecurity-nginx.git modules/ngx_modsecurity \
