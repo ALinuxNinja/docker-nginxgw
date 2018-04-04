@@ -101,7 +101,7 @@ RUN export NGINX_VER="${NGINX_BUILD_VER}.$(lynx -dump -hiddenlinks=listonly http
 && mkdir modules \
 && git clone https://github.com/kyprizel/testcookie-nginx-module.git modules/ngx_testcookie \
 && git clone https://github.com/SpiderLabs/ModSecurity-nginx.git modules/ngx_modsecurity \
-&& mv /build/ngx_pagespeed/ modules/ngx_pagespeed/ \
+&& mv /docker/build/ngx_pagespeed/ modules/ngx_pagespeed/ \
 && ./configure $NGINX_CONFIG \
 && make -j$(nproc) \
 && make install \
