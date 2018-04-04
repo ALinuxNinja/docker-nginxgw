@@ -107,6 +107,7 @@ RUN export NGINX_VER="${NGINX_BUILD_VER}.$(lynx -dump -hiddenlinks=listonly http
 && make install \
 && mkdir -p /var/lib/nginx/body && chown -R www-data:www-data /var/lib/nginx \
 && strip /usr/sbin/nginx \
+&& ls -la /usr/lib/libmodsecurity* \
 && strip /usr/lib/libmodsecurity.so.3.0.0
 
 FROM ubuntu:xenial
