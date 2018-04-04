@@ -134,6 +134,8 @@ COPY --from=0 /var/log/nginx /var/log/nginx
 COPY --from=0 /var/lib/nginx /var/lib/nginx
 COPY --from=0 /usr/html /var/www/html
 COPY --from=0 /usr/lib/libmodsecurity.so.3.0.2 /usr/lib/libmodsecurity.so.3.0.2
+COPY --from=0 /docker/src/nginx/conf/nginx.conf /etc/nginx/nginx.conf
+COPY --from=0 /docker/src/nginx/conf/default.conf /etc/nginx/conf.d/default.conf
 
 ## Create Symlinks
 RUN cd /usr/lib \
@@ -142,10 +144,6 @@ RUN cd /usr/lib \
 RUN apt-get update && apt-get -y install --no-install-recommends \
         $PACKAGES_REQUIRED \
 && rm -rf /var/lib/apt/lists/*
-
-## Copy Config
-RUN cp /docker/src/nginx/conf/nginx.conf /etc/nginx/nginx.conf \
-&& cp /docker/src/nginx/conf/default.conf /etc/nginx/conf.d/default.conf
 
 ## Expose
 EXPOSE 80
