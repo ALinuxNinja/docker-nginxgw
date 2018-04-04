@@ -107,8 +107,7 @@ RUN export NGINX_VER="${NGINX_BUILD_VER}.$(lynx -dump -hiddenlinks=listonly http
 && make install \
 && mkdir -p /var/lib/nginx/body && chown -R www-data:www-data /var/lib/nginx \
 && strip /usr/sbin/nginx \
-&& ls -la /usr/lib/libmodsecurity* \
-&& strip /usr/lib/libmodsecurity.so.3.0.0
+&& strip /usr/lib/libmodsecurity.so.3.0.2
 
 FROM ubuntu:xenial
 
@@ -134,11 +133,11 @@ COPY --from=0 /etc/nginx /etc/nginx
 COPY --from=0 /var/log/nginx /var/log/nginx
 COPY --from=0 /var/lib/nginx /var/lib/nginx
 COPY --from=0 /usr/html /var/www/html
-COPY --from=0 /usr/lib/libmodsecurity.so.3.0.0 /usr/lib/libmodsecurity.so.3.0.0
+COPY --from=0 /usr/lib/libmodsecurity.so.3.0.2 /usr/lib/libmodsecurity.so.3.0.2
 
 ## Create Symlinks
 RUN cd /usr/lib \
-&& ln -s libmodsecurity.so.3.0.0 libmodsecurity.so.3
+&& ln -s libmodsecurity.so.3.0.2 libmodsecurity.so.3
 
 RUN apt-get update && apt-get -y install --no-install-recommends \
         $PACKAGES_REQUIRED \
