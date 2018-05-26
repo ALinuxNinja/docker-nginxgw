@@ -101,13 +101,13 @@ RUN export NGINX_VER="${NGINX_BUILD_VER}.$(lynx -dump -hiddenlinks=listonly http
 && mkdir modules \
 && git clone https://github.com/kyprizel/testcookie-nginx-module.git modules/ngx_testcookie \
 && git clone https://github.com/SpiderLabs/ModSecurity-nginx.git modules/ngx_modsecurity \
-&& mv /build/ngx_pagespeed/ modules/ngx_pagespeed/ \
+&& mv /docker/build/ngx_pagespeed/ modules/ngx_pagespeed/ \
 && ./configure $NGINX_CONFIG \
 && make -j$(nproc) \
 && make install \
 && mkdir -p /var/lib/nginx/body && chown -R www-data:www-data /var/lib/nginx \
 && strip /usr/sbin/nginx \
-&& strip /usr/lib/libmodsecurity.so.3.0.0
+&& strip /usr/lib/libmodsecurity.so.3.0.2
 
 FROM ubuntu:xenial
 
@@ -133,19 +133,17 @@ COPY --from=0 /etc/nginx /etc/nginx
 COPY --from=0 /var/log/nginx /var/log/nginx
 COPY --from=0 /var/lib/nginx /var/lib/nginx
 COPY --from=0 /usr/html /var/www/html
-COPY --from=0 /usr/lib/libmodsecurity.so.3.0.0 /usr/lib/libmodsecurity.so.3.0.0
+COPY --from=0 /usr/lib/libmodsecurity.so.3.0.2 /usr/lib/libmodsecurity.so.3.0.2
+COPY --from=0 /docker/src/nginx/conf/nginx.conf /etc/nginx/nginx.conf
+COPY --from=0 /docker/src/nginx/conf/default.conf /etc/nginx/conf.d/default.conf
 
 ## Create Symlinks
 RUN cd /usr/lib \
-&& ln -s libmodsecurity.so.3.0.0 libmodsecurity.so.3
+&& ln -s libmodsecurity.so.3.0.2 libmodsecurity.so.3
 
 RUN apt-get update && apt-get -y install --no-install-recommends \
         $PACKAGES_REQUIRED \
 && rm -rf /var/lib/apt/lists/*
-
-## Copy Config
-RUN cp /docker/src/nginx/conf/nginx.conf /etc/nginx/nginx.conf \
-&& cp /docker/src/nginx/conf/default.conf /etc/nginx/conf.d/default.conf
 
 ## Expose
 EXPOSE 80
