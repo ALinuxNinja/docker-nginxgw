@@ -46,7 +46,7 @@ jobs:
           command: docker push $UBUNTU_MAINLINE_IMAGE
       - run:
           name: Push Latest Container to Docker Hub
-          command: docker push catdeployed/ngingw:latest
+          command: docker push catdeployed/nginxgw:latest
   deploy-dev:
     machine: true
     working_directory: ~/repo/ubuntu
@@ -69,7 +69,7 @@ jobs:
           command: docker push $UBUNTU_MAINLINE_IMAGE-dev
       - run:
           name: Push Latest Container to Docker Hub
-          command: docker push catdeployed/ngingw:latest-dev
+          command: docker push catdeployed/nginxgw:latest-dev
 workflows:
   version: 2
   nightly:
