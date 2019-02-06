@@ -81,8 +81,7 @@ workflows:
               only:
                 - master
     jobs:
-      - build-alpine
-      - build-ubuntu
+      - build-ubuntu-mainline
       - deploy:
           requires:
             - build-alpine
@@ -93,8 +92,7 @@ workflows:
                 - master
   commit:
     jobs:
-      - build-alpine
-      - build-ubuntu
+      - build-ubuntu-mainline
       - deploy:
           requires:
             - build-alpine
