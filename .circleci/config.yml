@@ -84,8 +84,7 @@ workflows:
       - build-ubuntu-mainline
       - deploy:
           requires:
-            - build-alpine
-            - build-ubuntu
+            - build-ubuntu-mainline
           filters:
             branches:
               only:
@@ -95,16 +94,14 @@ workflows:
       - build-ubuntu-mainline
       - deploy:
           requires:
-            - build-alpine
-            - build-ubuntu
+            - build-ubuntu-mainline
           filters:
             branches:
               only:
                 - master
       - deploy-dev:
           requires:
-            - build-alpine
-            - build-ubuntu
+            - build-ubuntu-mainline
           filters:
             branches:
               only:
