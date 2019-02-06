@@ -1,7 +1,8 @@
 FROM ubuntu:xenial
 SHELL ["/bin/bash", "-c"]
 
-ARG NGINX_BUILD_VER
+ARG NGINX_VER
+ARG MODSECURITY_VER
 
 ## Set Packages to add
 ENV PACKAGES_BUILD="\
@@ -85,7 +86,7 @@ RUN git clone -b latest-beta https://github.com/apache/incubator-pagespeed-ngx.g
 ## Build ModSecurity
 RUN git clone https://github.com/SpiderLabs/ModSecurity \
 && cd ModSecurity \
-&& git checkout v3/master \
+&& git checkout v${MODSECURITY_VER} \
 && git submodule init \
 && git submodule update \
 && ./build.sh \
@@ -94,8 +95,7 @@ RUN git clone https://github.com/SpiderLabs/ModSecurity \
 && make install
 
 ## Build NGINX
-RUN export NGINX_VER="${NGINX_BUILD_VER}.$(lynx -dump -hiddenlinks=listonly http://nginx.org/download/ | awk '/http/{print $2}' | sed -n "s/^.*nginx-${NGINX_BUILD_VER}\.\(.*\)\.tar\.gz$/\1/p" | sort -V | tail -n1)" \
-&& wget http://nginx.org/download/nginx-${NGINX_VER}.tar.gz \
+RUN wget http://nginx.org/download/nginx-${NGINX_VER}.tar.gz \
 && tar xf nginx-*.tar.gz && rm nginx-*.tar.gz && mv nginx-* nginx \
 && cd nginx \
 && mkdir modules \
@@ -107,17 +107,18 @@ RUN export NGINX_VER="${NGINX_BUILD_VER}.$(lynx -dump -hiddenlinks=listonly http
 && make install \
 && mkdir -p /var/lib/nginx/body && chown -R www-data:www-data /var/lib/nginx \
 && strip /usr/sbin/nginx \
-&& strip /usr/lib/libmodsecurity.so.3.0.2
+&& strip /usr/lib/libmodsecurity.so.${MODSECURITY_VER}
 
 FROM ubuntu:xenial
 
-ARG NGINX_BUILD_VER
+ARG NGINX_VER
+ARG MODSECURITY_VER
 LABEL org.label-schema.name="nginxgw" \
       org.label-schema.description="A Custom NGINX build suitable for use as a front-end proxy" \
       org.label-schema.url="https://hub.docker.com/r/catdeployed/nginxgw/" \
       org.label-schema.vcs-url="https://github.com/CatDeployed/docker-nginxgw/" \
       org.label-schema.vendor="CatDeployed" \
-      org.label-schema.version=$NGINX_BUILD_VER \
+      org.label-schema.version=$NGINX_VER \
       org.label-schema.schema-version="1.0"
 
 ENV PACKAGES_REQUIRED="\
@@ -133,13 +134,13 @@ COPY --from=0 /etc/nginx /etc/nginx
 COPY --from=0 /var/log/nginx /var/log/nginx
 COPY --from=0 /var/lib/nginx /var/lib/nginx
 COPY --from=0 /usr/html /var/www/html
-COPY --from=0 /usr/lib/libmodsecurity.so.3.0.2 /usr/lib/libmodsecurity.so.3.0.2
+COPY --from=0 /usr/lib/libmodsecurity.so.$MODSECURITY_VER /usr/lib/libmodsecurity.so.$MODSECURITY_VER
 COPY --from=0 /docker/src/nginx/conf/nginx.conf /etc/nginx/nginx.conf
 COPY --from=0 /docker/src/nginx/conf/default.conf /etc/nginx/conf.d/default.conf
 
 ## Create Symlinks
 RUN cd /usr/lib \
-&& ln -s libmodsecurity.so.3.0.2 libmodsecurity.so.3
+&& ln -s libmodsecurity.so.${MODSECURITY_VER} libmodsecurity.so.3
 
 RUN apt-get update && apt-get -y install --no-install-recommends \
         $PACKAGES_REQUIRED \
