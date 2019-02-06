@@ -13,5 +13,5 @@ When building, specify the correct NGINX version to build. Automatic version bui
 
 For example:
 ```
-docker build --build-arg NGINX_VER=1.13.0 -t alinuxninja/nginxgw:latest .
+docker build --build-arg NGINX_MAIN_VER=1.15 --build-arg MODSECURITY_VER=3.0.3 -t catdeployed/nginxgw:latest .
 ```
