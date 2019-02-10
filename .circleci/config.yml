@@ -35,7 +35,7 @@ jobs:
           at: /tmp/workspace
       - run:
           name: Check if version exists
-          command: docker pull catdeployed/nginxgw:${NGINX_VER} && circleci step halt || true
+          command: if [ ! /tmp/workspace/nginx_mainline_ubuntu.tar ] then; circleci step halt || true; fi
       - run:
           name: Load Ubuntu Mainline Image
           command: |
