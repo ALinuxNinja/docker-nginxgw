@@ -34,6 +34,9 @@ jobs:
       - attach_workspace:
           at: /tmp/workspace
       - run:
+          name: Check if version exists
+          command: docker pull catdeployed/nginxgw:${NGINX_VER} && circleci step halt || true
+      - run:
           name: Load Ubuntu Mainline Image
           command: |
             echo -n 'export UBUNTU_MAINLINE_IMAGE=' >> $BASH_ENV
