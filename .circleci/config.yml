@@ -147,7 +147,7 @@ workflows:
                 - master
     jobs:
       - build-ubuntu-mainline
-      - deploy:
+      - deploy-ubuntu-mainline:
           requires:
             - build-ubuntu-mainline
           filters:
@@ -157,7 +157,7 @@ workflows:
   commit:
     jobs:
       - build-ubuntu-mainline
-      - deploy:
+      - deploy-ubuntu-mainline:
           requires:
             - build-ubuntu-mainline
           filters:
