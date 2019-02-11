@@ -42,6 +42,9 @@ jobs:
             echo -n 'export UBUNTU_MAINLINE_IMAGE=' >> $BASH_ENV
             echo $(docker load --quiet --input /tmp/workspace/nginx_mainline_ubuntu.tar | awk -F' ' '{print $(NF)}') >> $BASH_ENV
       - run:
+          name: Tag Ubuntu Mainline Image as latest-ubuntu
+          command: docker tag $UBUNTU_MAINLINE_IMAGE catdeployed/nginxgw:latest-ubuntu
+      - run:
           name: Tag Ubuntu Mainline Image as latest
           command: docker tag $UBUNTU_MAINLINE_IMAGE catdeployed/nginxgw:latest
       - run:
