@@ -2,7 +2,7 @@ version: 2
 jobs:
   build-ubuntu-mainline:
     machine: true
-    working_directory: ~/repo/ubuntu
+    working_directory: ~/repo
     environment:
       NGINX_MAIN_VER: 1.15
       MODSECURITY_VER: 3.0.3
@@ -27,9 +27,36 @@ jobs:
           root: workspace
           paths:
             - nginx_mainline_ubuntu.tar
-  deploy:
+  build-ubuntu-stable:
     machine: true
-    working_directory: ~/repo/ubuntu
+    working_directory: ~/repo
+    environment:
+      NGINX_MAIN_VER: 1.14
+      MODSECURITY_VER: 3.0.3
+    steps:
+      - checkout:
+          path: ~/repo
+      - run:
+          name: Get NGINX Version
+          command: |
+            echo -n 'export NGINX_VER=' >> $BASH_ENV
+            echo $(curl -sL http://nginx.org/en/CHANGES | grep -i "Changes with nginx $NGINX_MAIN_VER" | sed -n "s/Changes with nginx \([0-9]*\.[0-9]*\.[0-9]\).*/\1/p" | sort -V | tail -n1) >> $BASH_ENV
+      - run:
+          name: Check if version exists
+          command: docker pull catdeployed/nginxgw:${NGINX_VER} && circleci step halt || true
+      - run:
+          name: Build Container
+          command: docker build --build-arg NGINX_VER=$NGINX_VER --build-arg MODSECURITY_VER=$MODSECURITY_VER -t catdeployed/nginxgw:$NGINX_VER .
+      - run:
+          name: Export Container
+          command: mkdir workspace && cd workspace && docker save --output nginx_stable_ubuntu.tar catdeployed/nginxgw:$NGINX_VER
+      - persist_to_workspace:
+          root: workspace
+          paths:
+            - nginx_stable_ubuntu.tar
+  deploy-ubuntu-mainline:
+    machine: true
+    working_directory: ~/repo
     steps:
       - attach_workspace:
           at: /tmp/workspace
@@ -42,8 +69,8 @@ jobs:
             echo -n 'export UBUNTU_MAINLINE_IMAGE=' >> $BASH_ENV
             echo $(docker load --quiet --input /tmp/workspace/nginx_mainline_ubuntu.tar | awk -F' ' '{print $(NF)}') >> $BASH_ENV
       - run:
-          name: Tag Ubuntu Mainline Image as latest-ubuntu
-          command: docker tag $UBUNTU_MAINLINE_IMAGE catdeployed/nginxgw:latest-ubuntu
+          name: Tag Ubuntu Mainline Image as mainline
+          command: docker tag $UBUNTU_MAINLINE_IMAGE catdeployed/nginxgw:mainline
       - run:
           name: Tag Ubuntu Mainline Image as latest
           command: docker tag $UBUNTU_MAINLINE_IMAGE catdeployed/nginxgw:latest
@@ -54,8 +81,37 @@ jobs:
           name: Push Ubuntu Container to Docker Hub
           command: docker push $UBUNTU_MAINLINE_IMAGE
       - run:
+          name: Push Mainline Container to Docker Hub
+          command: docker push catdeployed/nginxgw:mainline
+      - run:
           name: Push Latest Container to Docker Hub
           command: docker push catdeployed/nginxgw:latest
+  deploy-ubuntu-stable:
+    machine: true
+    working_directory: ~/repo
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Check if version exists
+          command: if [ ! -f /tmp/workspace/nginx_stable_ubuntu.tar ]; then circleci step halt || true; fi
+      - run:
+          name: Load Ubuntu Stable Image
+          command: |
+            echo -n 'export UBUNTU_STABLE_IMAGE=' >> $BASH_ENV
+            echo $(docker load --quiet --input /tmp/workspace/nginx_stable_ubuntu.tar | awk -F' ' '{print $(NF)}') >> $BASH_ENV
+      - run:
+          name: Tag Ubuntu Stable Image as mainline
+          command: docker tag $UBUNTU_STABLE_IMAGE catdeployed/nginxgw:stable
+      - run:
+          name: Login to Docker Hub
+          command: docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - run:
+          name: Push Ubuntu Container to Docker Hub
+          command: docker push $UBUNTU_STABLE_IMAGE
+      - run:
+          name: Push Latest Container to Docker Hub
+          command: docker push catdeployed/nginxgw:stable
   deploy-dev:
     machine: true
     working_directory: ~/repo/ubuntu
