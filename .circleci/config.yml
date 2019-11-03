@@ -12,11 +12,7 @@ jobs:
       - run:
           name: Get NGINX Version
           command: |
-            echo -n 'export NGINX_VER="' >> $BASH_ENV
-            echo -n $(curl -sL http://nginx.org/en/CHANGES | grep -i "Changes with nginx $NGINX_MAIN_VER" | sed -n "s/Changes with nginx \([0-9]*\.[0-9]*\.[0-9]\).*/\1/p" | sort -V | tail -n1) >> $BASH_ENV
             curl -sL http://nginx.org/en/CHANGES | grep -i "Changes with nginx $NGINX_MAIN_VER" | sed -n "s/Changes with nginx \([0-9]*\.[0-9]*\.[0-9]\).*/\1/p" | sort -V | tail -n1
-            echo '"' >> $BASH_ENV
-            cat $BASH_ENV
       - run:
           name: debug
           command: echo $NGINX_VER
