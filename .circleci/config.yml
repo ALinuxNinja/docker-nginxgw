@@ -4,7 +4,7 @@ jobs:
     machine: true
     working_directory: ~/repo
     environment:
-      NGINX_MAIN_VER: 1.16
+      NGINX_MAIN_VER: 1.17
       MODSECURITY_VER: 3.0.3
     steps:
       - checkout:
@@ -12,7 +12,8 @@ jobs:
       - run:
           name: Get NGINX Version
           command: |
-            curl -sL http://nginx.org/en/CHANGES | grep -i "Changes with nginx $NGINX_MAIN_VER" | sed -n "s/Changes with nginx \([0-9]*\.[0-9]*\.[0-9]\).*/\1/p" | sort -V | tail -n1
+            echo -n 'export NGINX_VER=' >> $BASH_ENV
+            echo $(curl -sL http://nginx.org/en/CHANGES | grep -i "Changes with nginx $NGINX_MAIN_VER" | sed -n "s/Changes with nginx \([0-9]*\.[0-9]*\.[0-9]\).*/\1/p" | sort -V | tail -n1) >> $BASH_ENV
       - run:
           name: debug
           command: echo $NGINX_VER
@@ -33,7 +34,7 @@ jobs:
     machine: true
     working_directory: ~/repo
     environment:
-      NGINX_MAIN_VER: 1.15
+      NGINX_MAIN_VER: 1.16
       MODSECURITY_VER: 3.0.3
     steps:
       - checkout:
@@ -42,7 +43,7 @@ jobs:
           name: Get NGINX Version
           command: |
             echo -n 'export NGINX_VER=' >> $BASH_ENV
-            echo $(curl -sL http://nginx.org/en/CHANGES | grep -i "Changes with nginx $NGINX_MAIN_VER" | sed -n "s/Changes with nginx \([0-9]*\.[0-9]*\.[0-9]\).*/\1/p" | sort -V | tail -n1) >> $BASH_ENV
+            echo $(curl -sL http://nginx.org/en/CHANGES-$NGINX_MAIN_VER | grep -i "Changes with nginx $NGINX_MAIN_VER" | sed -n "s/Changes with nginx \([0-9]*\.[0-9]*\.[0-9]\).*/\1/p" | sort -V | tail -n1) >> $BASH_ENV
       - run:
           name: Check if version exists
           command: docker pull catdeployed/nginxgw:${NGINX_VER} && circleci step halt || true
