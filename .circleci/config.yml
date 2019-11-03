@@ -157,8 +157,24 @@ workflows:
             branches:
               only:
                 - master
+      - build-ubuntu-stable
+      - deploy-ubuntu-stable:
+          requires:
+            - build-ubuntu-stable
+          filters:
+            branches:
+              only:
+                - master
   commit:
     jobs:
+      - build-ubuntu-stable
+      - deploy-ubuntu-stable:
+          requires:
+            - build-ubuntu-stable
+          filters:
+            branches:
+              only:
+                - master
       - build-ubuntu-mainline
       - deploy-ubuntu-mainline:
           requires:
