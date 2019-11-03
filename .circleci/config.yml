@@ -15,6 +15,9 @@ jobs:
             echo -n 'export NGINX_VER=' >> $BASH_ENV
             echo $(curl -sL http://nginx.org/en/CHANGES | grep -i "Changes with nginx $NGINX_MAIN_VER" | sed -n "s/Changes with nginx \([0-9]*\.[0-9]*\.[0-9]\).*/\1/p" | sort -V | tail -n1) >> $BASH_ENV
       - run:
+          name: debug
+          command: echo $NGINX_VER
+      - run:
           name: Check if version exists
           command: docker pull catdeployed/nginxgw:${NGINX_VER} && circleci step halt || true
       - run:
