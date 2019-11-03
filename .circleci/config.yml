@@ -4,7 +4,7 @@ jobs:
     machine: true
     working_directory: ~/repo
     environment:
-      NGINX_MAIN_VER: 1.15
+      NGINX_MAIN_VER: 1.16
       MODSECURITY_VER: 3.0.3
     steps:
       - checkout:
@@ -31,7 +31,7 @@ jobs:
     machine: true
     working_directory: ~/repo
     environment:
-      NGINX_MAIN_VER: 1.14
+      NGINX_MAIN_VER: 1.15
       MODSECURITY_VER: 3.0.3
     steps:
       - checkout:
